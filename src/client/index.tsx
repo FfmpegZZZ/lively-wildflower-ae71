@@ -1,3 +1,4 @@
+
 import { createRoot } from "react-dom/client";
 import { usePartySocket } from "partysocket/react";
 import React, { useState } from "react";
@@ -7,13 +8,14 @@ import {
   Route,
   Navigate,
   useParams,
-} from "react-router";
+} from "react-router-dom"; // Changed from "react-router"
 import { nanoid } from "nanoid";
 
-import { names, type ChatMessage, type Message } from "../shared";
+import { type ChatMessage, type Message } from "../shared"; // Removed 'names' import
 
 function App() {
-  const [name] = useState(names[Math.floor(Math.random() * names.length)]);
+  const [name, setName] = useState<string | null>(null); // State for username
+  const [usernameInput, setUsernameInput] = useState<string>(""); // State for username input field
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const { room } = useParams();
 
@@ -70,6 +72,36 @@ function App() {
     },
   });
 
+  if (!name) {
+    // If username is not set, show the username input form
+    return (
+      <div className="container username-prompt">
+        <h2>Enter your username:</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (usernameInput.trim()) {
+              setName(usernameInput.trim());
+            }
+          }}
+        >
+          <input
+            type="text"
+            value={usernameInput}
+            onChange={(e) => setUsernameInput(e.target.value)}
+            placeholder="Username"
+            className="u-full-width"
+            autoFocus
+          />
+          <button type="submit" className="button-primary u-full-width">
+            Join Chat
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  // If username is set, show the chat interface
   return (
     <div className="chat container">
       {messages.map((message) => (
@@ -82,17 +114,18 @@ function App() {
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          const content = e.currentTarget.elements.namedItem(
+          const contentInput = e.currentTarget.elements.namedItem(
             "content",
           ) as HTMLInputElement;
+          if (!contentInput.value.trim() || !name) return; // Ensure content and name exist
+
           const chatMessage: ChatMessage = {
             id: nanoid(8),
-            content: content.value,
-            user: name,
+            content: contentInput.value,
+            user: name, // Use the state variable 'name'
             role: "user",
           };
           setMessages((messages) => [...messages, chatMessage]);
-          // we could broadcast the message here
 
           socket.send(
             JSON.stringify({
@@ -101,14 +134,14 @@ function App() {
             } satisfies Message),
           );
 
-          content.value = "";
+          contentInput.value = "";
         }}
       >
         <input
           type="text"
           name="content"
           className="ten columns my-input-text"
-          placeholder={`Hello ${name}! Type a message...`}
+          placeholder={`Hello ${name}! Type a message...`} // Use the state variable 'name'
           autoComplete="off"
         />
         <button type="submit" className="send-message two columns">
