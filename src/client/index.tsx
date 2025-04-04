@@ -1,5 +1,4 @@
-
-import { createRoot } from "react-dom/client";
+ import { createRoot } from "react-dom/client";
 import { usePartySocket } from "partysocket/react";
 import React, { useState } from "react";
 import {
@@ -8,7 +7,7 @@ import {
   Route,
   Navigate,
   useParams,
-} from "react-router-dom"; // Changed from "react-router"
+} from "react-router";
 import { nanoid } from "nanoid";
 
 import { type ChatMessage, type Message } from "../shared"; // Removed 'names' import
